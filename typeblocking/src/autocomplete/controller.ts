@@ -58,11 +58,11 @@ export class FloatingInputController {
       this.connectionManager = new ConnectionManager(ws, opts.connectionConfig);
     }
 
-    ws.getInjectionDiv().addEventListener('pointermove', this.pointerMoveListener);
+    (ws.getInjectionDiv() as HTMLElement).addEventListener('pointermove', this.pointerMoveListener);
   }
 
   dispose(): void {
-    this.ws.getInjectionDiv().removeEventListener('pointermove', this.pointerMoveListener)
+    (this.ws.getInjectionDiv() as HTMLElement).removeEventListener('pointermove', this.pointerMoveListener)
     // TODO: remove event listeners - I will need access to them
     //this.renderer?.inputEl.removeEventListener('input', this.renderer?.inputEl);
   }
@@ -74,9 +74,8 @@ export class FloatingInputController {
     Blockly.WidgetDiv.show(
       {},
       this.ws.RTL,
-      () => this.ws.getInjectionDiv().focus(),
+      () => (this.ws.getInjectionDiv() as HTMLElement).focus(),
       this.ws,
-      true,
     );
 
     const renderer = new Renderer((v) => this.choose(v), initial);
@@ -154,7 +153,7 @@ export class FloatingInputController {
 
     Blockly.WidgetDiv.hide();
     // TODO: does this interfere with the new block's focus?
-    this.ws.getInjectionDiv().focus();
+    (this.ws.getInjectionDiv() as HTMLElement).focus();
   }
 
   private positionWidgetDiv(): void {
