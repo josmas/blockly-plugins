@@ -78,7 +78,7 @@ export class FloatingInputController {
       this.ws,
     );
 
-    const renderer = new Renderer((v) => this.choose(v), initial);
+    const renderer = new Renderer((option) => this.choose(option), initial);
     Blockly.WidgetDiv.getDiv()!.appendChild(renderer.root);
 
     this.positionWidgetDiv();
@@ -102,7 +102,7 @@ export class FloatingInputController {
     refresh();
 
     renderer.inputEl.addEventListener('keydown', (kev) => {
-      if (renderer.onKey(kev.key, (v) => this.choose(v))) kev.preventDefault();
+      if (renderer.onKey(kev.key, (option) => this.choose(option))) kev.preventDefault();
       else if (kev.key === 'Escape') Blockly.WidgetDiv.hide();
       kev.stopPropagation();
     });
@@ -112,15 +112,15 @@ export class FloatingInputController {
     setTimeout(() => renderer.focus());
   }
 
-  private choose(value: string): void {
-    console.debug('TypeBlocking: Choosing value:', value);
+  private choose(option: Option): void {
+    console.debug('TypeBlocking: Choosing option:', option);
     
     let newBlock: Blockly.BlockSvg | undefined;
 
     // First, try pattern recognition if enabled
     if (this.patternManager) {
-      console.debug('TypeBlocking: Trying pattern recognition for:', value);
-      const instruction = this.patternManager.getBlockInstructions(value);
+      console.debug('TypeBlocking: Trying pattern recognition for:', option.blockType);
+      const instruction = this.patternManager.getBlockInstructions(option.blockType);
       if (instruction) {
         console.debug('TypeBlocking: Found pattern instruction:', instruction);
         newBlock = this.blockFactory.createBlockFromInstruction(instruction);
@@ -133,7 +133,7 @@ export class FloatingInputController {
     // Fall back to regular block creation if pattern recognition didn't work
     if (!newBlock) {
       console.debug('TypeBlocking: Falling back to regular block creation');
-      newBlock = this.blockFactory.createBlock(value);
+      newBlock = this.blockFactory.createBlock(option.blockType, option.extraState, option.fieldValues);
       if (newBlock) {
         console.debug('TypeBlocking: Created block using regular method:', newBlock.type);
       }
@@ -148,7 +148,7 @@ export class FloatingInputController {
         this.connectionManager.attemptConnection(newBlock, this.lastX, this.lastY);
       }
     } else {
-      console.warn('TypeBlocking: Failed to create block for value:', value);
+      console.warn('TypeBlocking: Failed to create block for option:', option);
     }
 
     Blockly.WidgetDiv.hide();

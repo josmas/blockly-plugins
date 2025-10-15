@@ -193,9 +193,27 @@ class AppInventorOptionGenerator implements OptionGenerator {
   getProcedureOptions(): Option[] {
     // Custom procedure option generation
     return [
-      { blockType: 'myProcedure', displayText: 'myProcedure' },
+      {
+        blockType: 'procedures_callnoreturn',
+        displayText: 'call myProcedure',
+        fieldValues: { PROCNAME: 'myProcedure' }
+      },
       { blockType: 'calculate(x, y)', displayText: 'calculate(x, y)' }
     ];
+  }
+
+  getComponentOptions(): Option[] {
+    // App Inventor components
+    const mutation = document.createElement('mutation');
+    mutation.setAttribute('component_type', 'Button');
+    mutation.setAttribute('instance_name', 'Button1');
+    mutation.setAttribute('event_name', 'Click');
+
+    return [{
+      blockType: 'component_event',
+      displayText: 'when Button1.Click',
+      extraState: Blockly.utils.xml.domToText(mutation)
+    }];
   }
 
   getBuiltinBlockOptions(): Option[] {
@@ -365,6 +383,8 @@ interface InstallOptions {
 interface Option {
   blockType: string;    // The block type identifier used for block creation
   displayText: string;  // Human-friendly display text shown in autocomplete
+  extraState?: any;     // Extra state to apply to the block
+  fieldValues?: Record<string, any>;  // Field values to set on the block
 }
 
 interface OptionGenerator {
