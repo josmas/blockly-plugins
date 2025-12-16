@@ -19,6 +19,16 @@ export class Renderer {
     this.list = this.root.querySelector('.fi-list') as HTMLUListElement;
     this.input.value = initial;
 
+    this.list.addEventListener('mousemove', (ev) => {
+      const li = (ev.target as HTMLElement).closest('li');
+      if (li) {
+        const idx = parseInt(li.dataset.idx!, 10);
+        if (idx !== this.highlighted) {
+          this.updateHighlight(idx);
+        }
+      }
+    });
+
     this.list.addEventListener('mousedown', (ev) => {
       ev.preventDefault();
       const li = (ev.target as HTMLElement).closest('li');
