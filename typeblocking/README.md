@@ -362,6 +362,7 @@ interface InstallOptions {
   options?: Option[];                    // Static options (legacy mode)
   matcher?: Matcher;                     // Custom matching function
   optionGenerator?: OptionGenerator;     // Custom option generation
+  workspaceStateTracker?: WorkspaceStateTracker;  // Custom cache invalidation
   enableDynamicOptions?: boolean;        // Enable/disable dynamic features (default: true)
 
   // Pattern Recognition
@@ -392,6 +393,12 @@ interface OptionGenerator {
   getVariableOptions(): Option[];
   getProcedureOptions(): Option[];
   getBuiltinBlockOptions(): Option[];
+}
+
+interface WorkspaceStateTracker {
+  readonly needsReload: boolean;
+  invalidate(reason: string): void;
+  dispose(): void;
 }
 
 interface ScopeAnalyzer {

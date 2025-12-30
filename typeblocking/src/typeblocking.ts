@@ -13,6 +13,7 @@ export interface InstallOptions {
     options?: Option[];
     matcher?: Matcher;
     optionGenerator?: OptionGenerator;
+    workspaceStateTracker?: WorkspaceStateTracker;
     enableDynamicOptions?: boolean;
     enableSmartConnection?: boolean;
     connectionConfig?: ConnectionConfig;
@@ -58,7 +59,7 @@ export class TypeBlocking {
             this.optionGenerator.setScopeAnalyzer(scopeAnalyzer);
         }
 
-        this.stateTracker = new DefaultWorkspaceStateTracker(this.workspace);
+        this.stateTracker = options.workspaceStateTracker ?? new DefaultWorkspaceStateTracker(this.workspace);
 
         this.installFloatingInput({
             options: [], // Will be generated dynamically
