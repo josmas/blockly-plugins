@@ -114,43 +114,49 @@ export class FloatingInputController {
 
   private choose(option: Option): void {
     console.debug('TypeBlocking: Choosing option:', option);
-    
+
     let newBlock: Blockly.BlockSvg | undefined;
 
-    // First, try pattern recognition if enabled
-    if (this.patternManager) {
-      console.debug('TypeBlocking: Trying pattern recognition for:', option.blockType);
-      const instruction = this.patternManager.getBlockInstructions(option.blockType);
-      if (instruction) {
-        console.debug('TypeBlocking: Found pattern instruction:', instruction);
-        newBlock = this.blockFactory.createBlockFromInstruction(instruction);
-        if (newBlock) {
-          console.debug('TypeBlocking: Created block using pattern recognition:', newBlock.type);
+    // Group all events (creation, positioning, connection) for single undo
+    Blockly.Events.setGroup(true);
+    try {
+      // First, try pattern recognition if enabled
+      if (this.patternManager) {
+        console.debug('TypeBlocking: Trying pattern recognition for:', option.blockType);
+        const instruction = this.patternManager.getBlockInstructions(option.blockType);
+        if (instruction) {
+          console.debug('TypeBlocking: Found pattern instruction:', instruction);
+          newBlock = this.blockFactory.createBlockFromInstruction(instruction);
+          if (newBlock) {
+            console.debug('TypeBlocking: Created block using pattern recognition:', newBlock.type);
+          }
         }
       }
-    }
 
-    // Fall back to regular block creation if pattern recognition didn't work
-    if (!newBlock) {
-      console.debug('TypeBlocking: Falling back to regular block creation');
-      newBlock = this.blockFactory.createBlock(option.blockType, option.extraState, option.fieldValues);
+      // Fall back to regular block creation if pattern recognition didn't work
+      if (!newBlock) {
+        console.debug('TypeBlocking: Falling back to regular block creation');
+        newBlock = this.blockFactory.createBlock(option.blockType, option.extraState, option.fieldValues);
+        if (newBlock) {
+          console.debug('TypeBlocking: Created block using regular method:', newBlock.type);
+        }
+      }
+
       if (newBlock) {
-        console.debug('TypeBlocking: Created block using regular method:', newBlock.type);
+        // Position the block first
+        this.blockPositioner.positionBlock(newBlock, this.lastX, this.lastY);
+
+        // Then attempt smart connection if enabled
+        if (this.connectionManager) {
+          this.connectionManager.attemptConnection(newBlock, this.lastX, this.lastY);
+        }
+
+        Blockly.common.setSelected(newBlock);
+      } else {
+        console.warn('TypeBlocking: Failed to create block for option:', option);
       }
-    }
-
-    if (newBlock) {
-      // Position the block first
-      this.blockPositioner.positionBlock(newBlock, this.lastX, this.lastY);
-
-      // Then attempt smart connection if enabled
-      if (this.connectionManager) {
-        this.connectionManager.attemptConnection(newBlock, this.lastX, this.lastY);
-      }
-
-      Blockly.common.setSelected(newBlock);
-    } else {
-      console.warn('TypeBlocking: Failed to create block for option:', option);
+    } finally {
+      Blockly.Events.setGroup(false);
     }
 
     Blockly.WidgetDiv.hide();

@@ -46,7 +46,7 @@ export class BlockFactory {
         blockState.fields[fieldName] = value;
       }
     }
-    return Blockly.serialization.blocks.append(blockState, this.workspace) as Blockly.BlockSvg;
+    return Blockly.serialization.blocks.append(blockState, this.workspace, {recordUndo: true}) as Blockly.BlockSvg;
   }
 
   /**
