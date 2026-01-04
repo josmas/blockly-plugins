@@ -147,13 +147,13 @@ export class FloatingInputController {
       if (this.connectionManager) {
         this.connectionManager.attemptConnection(newBlock, this.lastX, this.lastY);
       }
+
+      Blockly.common.setSelected(newBlock);
     } else {
       console.warn('TypeBlocking: Failed to create block for option:', option);
     }
 
     Blockly.WidgetDiv.hide();
-    // TODO: does this interfere with the new block's focus?
-    (this.ws.getInjectionDiv() as HTMLElement).focus();
   }
 
   private positionWidgetDiv(): void {
