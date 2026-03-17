@@ -25,6 +25,7 @@ export interface InstallOptions {
  * Create blocks by typing instead of navigating through the toolbox.
  */
 export class TypeBlocking {
+    private static instancesByWorkspaceId = new Map<string, TypeBlocking>();
 
     protected workspace: Blockly.WorkspaceSvg;
     private optionGenerator?: OptionGenerator;
@@ -110,6 +111,9 @@ export class TypeBlocking {
     dispose(): void {
         if (!this.workspace) return;
         const ws = this.workspace;
+        const id = ws.id;
+
+        TypeBlocking.instancesByWorkspaceId.delete(id);
 
         if (this.stateTracker) {
             this.stateTracker.dispose();
@@ -121,10 +125,12 @@ export class TypeBlocking {
             this.controller = undefined;
         }
 
-        Blockly.ShortcutRegistry.registry.unregister(SHORTCUT);
+        if (!TypeBlocking.instancesByWorkspaceId.size) {
+            Blockly.ShortcutRegistry.registry.unregister(SHORTCUT);
+        }
+
         Blockly.DropDownDiv.hideWithoutAnimation();
 
-        const id = ws.id;
         this.optionGenerator = undefined;
         // @ts-expect-error – intentional reference break for GC.
         this.workspace = null;
@@ -147,57 +153,63 @@ export class TypeBlocking {
             }
         );
 
-        const isPrintable = (k: KeyboardEvent) =>
-            k.key.length === 1 && !k.ctrlKey && !k.metaKey && !k.altKey;
+        TypeBlocking.instancesByWorkspaceId.set(this.workspace.id, this);
 
-        Blockly.ShortcutRegistry.registry.register({
-                name: SHORTCUT,
-                preconditionFn: () =>
-                    !(Blockly as any).FieldTextInput.activeField &&
-                    !Blockly.WidgetDiv.isVisible(),
-                callback: (_ws, ev) => {
-                    const kev = ev as KeyboardEvent;
-                    this.controller!.show(isPrintable(kev) ? kev.key : '');
-                    return true;
+        if (!Blockly.ShortcutRegistry.registry.getRegistry()[SHORTCUT]) {
+            const isPrintable = (k: KeyboardEvent) =>
+                k.key.length === 1 && !k.ctrlKey && !k.metaKey && !k.altKey;
+
+            Blockly.ShortcutRegistry.registry.register({
+                    name: SHORTCUT,
+                    preconditionFn: (workspace) =>
+                        TypeBlocking.instancesByWorkspaceId.has(workspace.id) &&
+                        !(Blockly as any).FieldTextInput.activeField &&
+                        !Blockly.WidgetDiv.isVisible(),
+                    callback: (workspace, ev) => {
+                        const instance = TypeBlocking.instancesByWorkspaceId.get(workspace.id)!;
+                        const kev = ev as KeyboardEvent;
+                        instance.controller!.show(isPrintable(kev) ? kev.key : '');
+                        return true;
+                    },
                 },
-            },
-            true,
-        );
-
-        const SKIP = new Set([
-            8,   // Backspace
-            9,   // Tab
-            13,  // Enter
-            16,  // Shift
-            17,  // Ctrl
-            18,  // Alt
-            19,  // Pause/Break
-            20,  // Caps Lock
-            27,  // Escape
-            33,  // Page Up
-            34,  // Page Down
-            35,  // End
-            36,  // Home
-            37,  // Left Arrow
-            38,  // Up Arrow
-            39,  // Right Arrow
-            40,  // Down Arrow
-            45,  // Insert
-            46,  // Delete
-            91,  // Meta
-            112, 113, 114, 115, 116, 117,  // F1-F6
-            118, 119, 120, 121, 122, 123   // F7-F12
-        ]);
-        // NOTE: Plain keys (no modifiers)
-        for (let code = 0; code <= 222; ++code) {
-            if (SKIP.has(code)) continue;
-            Blockly.ShortcutRegistry.registry.addKeyMapping(code, SHORTCUT, true);
-            // Register shift+key (e.g. ")
-            Blockly.ShortcutRegistry.registry.addKeyMapping(
-                Blockly.ShortcutRegistry.registry.createSerializedKey(code, [Blockly.utils.KeyCodes.SHIFT]),
-                SHORTCUT,
-                true
+                true,
             );
+
+            const SKIP = new Set([
+                8,   // Backspace
+                9,   // Tab
+                13,  // Enter
+                16,  // Shift
+                17,  // Ctrl
+                18,  // Alt
+                19,  // Pause/Break
+                20,  // Caps Lock
+                27,  // Escape
+                33,  // Page Up
+                34,  // Page Down
+                35,  // End
+                36,  // Home
+                37,  // Left Arrow
+                38,  // Up Arrow
+                39,  // Right Arrow
+                40,  // Down Arrow
+                45,  // Insert
+                46,  // Delete
+                91,  // Meta
+                112, 113, 114, 115, 116, 117,  // F1-F6
+                118, 119, 120, 121, 122, 123   // F7-F12
+            ]);
+            // NOTE: Plain keys (no modifiers)
+            for (let code = 0; code <= 222; ++code) {
+                if (SKIP.has(code)) continue;
+                Blockly.ShortcutRegistry.registry.addKeyMapping(code, SHORTCUT, true);
+                // Register shift+key (e.g. ")
+                Blockly.ShortcutRegistry.registry.addKeyMapping(
+                    Blockly.ShortcutRegistry.registry.createSerializedKey(code, [Blockly.utils.KeyCodes.SHIFT]),
+                    SHORTCUT,
+                    true
+                );
+            }
         }
     }
 }
