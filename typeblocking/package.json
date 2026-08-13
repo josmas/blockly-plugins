@@ -39,13 +39,13 @@
     "src"
   ],
   "devDependencies": {
-    "blockly": "^11.2.2",
-    "@blockly/dev-scripts": "^4.0.9",
-    "@blockly/dev-tools": "^8.1.2",
+    "blockly": "^13.2.1",
+    "@blockly/dev-scripts": "^13.2.0",
+    "@blockly/dev-tools": "^13.2.0",
     "typescript": "^5.8.3"
   },
   "peerDependencies": {
-    "blockly": "^11.2.2"
+    "blockly": "^13.2.1"
   },
   "publishConfig": {},
   "eslintConfig": {

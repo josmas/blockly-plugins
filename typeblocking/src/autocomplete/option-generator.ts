@@ -44,9 +44,9 @@ export class WorkspaceOptionGenerator implements OptionGenerator {
     const options: Option[] = [];
 
     // Global variables
-    const variables = this.workspace.getVariablesOfType('');
+    const variables = this.workspace.getVariableMap().getVariablesOfType('');
     for (const variable of variables) {
-      const name = variable.name;
+      const name = variable.getName();
       options.push({
         blockType: `get ${name}`,
         displayText: `get ${name}`
